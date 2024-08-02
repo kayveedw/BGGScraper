@@ -18,6 +18,8 @@
 
 ## Publisher
 
+## Published Year
+
 ## Official Link
 
 ## purchasing links
