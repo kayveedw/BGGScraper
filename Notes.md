@@ -2,7 +2,9 @@
 
 # format is boardgamegeek.com/boardgame/{ID}
 
-# Pull out game:
+## Highest valid ID is 427265, as of 21/08/2024
+
+# Pull out game's:
 
 ## Name
 

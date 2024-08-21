@@ -50,13 +50,21 @@ async function main() {
 		const data: BBGGame[] = [];
 
 		for (
-			let index: number = START_INDEX;
-			index < START_INDEX + 1000;
-			index++
+			let mainIndex: number = START_INDEX;
+			mainIndex < START_INDEX + 1000;
+			mainIndex += 20
 		) {
 			try {
-				console.log('Reading: ' + baseURL + '/' + index.toString());
-				const response = await fetch(baseURL + '/' + index.toString());
+				let currentURL = baseURL + '/';
+				for (let loop: number = 0; loop < 20; loop++) {
+					if (loop >= 1) {
+						currentURL += ',';
+					}
+					currentURL += (mainIndex + loop).toString();
+				}
+				console.log('Reading: ' + currentURL);
+				const response = await fetch(currentURL);
+
 				if (response && response.status == 200) {
 					const XMLData: string = await response.text();
 
@@ -88,104 +96,147 @@ async function main() {
 					const parser = new XMLParser(options);
 					const root = parser.parse(XMLData);
 
-					const currentGame: BBGGame = new BBGGame(index);
-
 					if (root && root.boardgames && root.boardgames.boardgame) {
 						const boardGame = root.boardgames.boardgame;
 
-						if (!boardGame['error']) {
-							if (boardGame['name']) {
-								for (let name of boardGame['name']) {
-									if (name['primary']) {
-										currentGame.name = name['value'];
+						if (!boardGame['error'] && Array.isArray(boardGame)) {
+							for (
+								let gameIndex: number = 0;
+								gameIndex < boardGame.length;
+								gameIndex++
+							) {
+								if (!boardGame[gameIndex].subtypemismatch) {
+									// non-boardgames, such as RPG Items have this attribute present and set to True
+
+									const currentGame: BBGGame = new BBGGame(
+										Number(boardGame[gameIndex]['objectid'])
+									);
+
+									if (boardGame[gameIndex]['name']) {
+										for (let name of boardGame[gameIndex][
+											'name'
+										]) {
+											if (name['primary']) {
+												currentGame.name =
+													name['value'];
+											}
+										}
 									}
+
+									currentGame.description =
+										boardGame[gameIndex]['description'];
+									currentGame.image.href =
+										boardGame[gameIndex]['image'];
+
+									if (
+										boardGame[gameIndex][
+											'boardGame[gameIndex]designer'
+										]
+									) {
+										for (let designer of boardGame[
+											gameIndex
+										]['boardgamedesigner']) {
+											currentGame.designers.push({
+												id: designer.objectid,
+												name: designer.value,
+											});
+										}
+									}
+
+									if (
+										boardGame[gameIndex]['boardgameartist']
+									) {
+										for (let artist of boardGame[gameIndex][
+											'boardgameartist'
+										]) {
+											currentGame.artists.push({
+												id: artist.objectid,
+												name: artist.value,
+											});
+										}
+									}
+
+									if (
+										boardGame[gameIndex][
+											'boardgamepublisher'
+										]
+									) {
+										for (let publisher of boardGame[
+											gameIndex
+										]['boardgamepublisher']) {
+											currentGame.publishers.push({
+												id: publisher.objectid,
+												name: publisher.value,
+											});
+										}
+									}
+
+									currentGame.publishedYear =
+										boardGame[gameIndex]['yearpublished'];
+
+									if (
+										boardGame[gameIndex][
+											'boardgamesubdomain.value'
+										]
+									) {
+										currentGame.type =
+											boardGame[gameIndex][
+												'boardgamesubdomain.value'
+											];
+									}
+
+									if (
+										boardGame[gameIndex][
+											'boardgamecategory'
+										]
+									) {
+										for (let category of boardGame[
+											gameIndex
+										]['boardgamecategory']) {
+											currentGame.categories.push({
+												id: category.objectid,
+												name: category.value,
+											});
+										}
+									}
+
+									if (
+										boardGame[gameIndex][
+											'boardgamemechanic'
+										]
+									) {
+										for (let mechanic of boardGame[
+											gameIndex
+										]['boardgamemechanic']) {
+											currentGame.mechanics.push({
+												id: mechanic.objectid,
+												name: mechanic.value,
+											});
+										}
+									}
+
+									if (
+										boardGame[gameIndex]['boardgamefamily']
+									) {
+										for (let family of boardGame[gameIndex][
+											'boardgamefamily'
+										]) {
+											currentGame.families.push({
+												id: family.objectid,
+												name: family.value,
+											});
+										}
+									}
+
+									data.push(currentGame);
+									console.log(
+										'Stored: Game ID = ' +
+											currentGame.id +
+											' Name = ' +
+											currentGame.name
+									);
 								}
 							}
-
-							currentGame.description = boardGame['description'];
-							currentGame.image.href = boardGame['image'];
-
-							if (boardGame['boardgamedesigner']) {
-								for (let designer of boardGame[
-									'boardgamedesigner'
-								]) {
-									currentGame.designers.push({
-										id: designer.objectid,
-										name: designer.value,
-									});
-								}
-							}
-
-							if (boardGame['boardgameartist']) {
-								for (let artist of boardGame[
-									'boardgameartist'
-								]) {
-									currentGame.artists.push({
-										id: artist.objectid,
-										name: artist.value,
-									});
-								}
-							}
-
-							if (boardGame['boardgamepublisher']) {
-								for (let publisher of boardGame[
-									'boardgamepublisher'
-								]) {
-									currentGame.publishers.push({
-										id: publisher.objectid,
-										name: publisher.value,
-									});
-								}
-							}
-
-							currentGame.publishedYear =
-								boardGame['yearpublished'];
-
-							if (boardGame['boardgamesubdomain.value']) {
-								currentGame.type =
-									boardGame['boardgamesubdomain.value'];
-							}
-
-							if (boardGame['boardgamecategory']) {
-								for (let category of boardGame[
-									'boardgamecategory'
-								]) {
-									currentGame.categories.push({
-										id: category.objectid,
-										name: category.value,
-									});
-								}
-							}
-
-							if (boardGame['boardgamemechanic']) {
-								for (let mechanic of boardGame[
-									'boardgamemechanic'
-								]) {
-									currentGame.mechanics.push({
-										id: mechanic.objectid,
-										name: mechanic.value,
-									});
-								}
-							}
-
-							if (boardGame['boardgamefamily']) {
-								for (let family of boardGame[
-									'boardgamefamily'
-								]) {
-									currentGame.families.push({
-										id: family.objectid,
-										name: family.value,
-									});
-								}
-							}
-
-							data.push(currentGame);
-							console.log(
-								'Stored: Game ID = ' +
-									currentGame.id +
-									' Name = ' +
-									currentGame.name
-							);
 						}
 					}
 				}
