@@ -105,136 +105,9 @@ async function main() {
 								gameIndex < boardGame.length;
 								gameIndex++
 							) {
+								// non-boardgames, such as RPG Items have this attribute present and set to True
 								if (!boardGame[gameIndex].subtypemismatch) {
-									// non-boardgames, such as RPG Items have this attribute present and set to True
-
-									const currentGame: BBGGame = new BBGGame(
-										Number(boardGame[gameIndex]['objectid'])
-									);
-
-									if (boardGame[gameIndex]['name']) {
-										for (let name of boardGame[gameIndex][
-											'name'
-										]) {
-											if (name['primary']) {
-												currentGame.name =
-													name['value'];
-											}
-										}
-									}
-
-									currentGame.description =
-										boardGame[gameIndex]['description'];
-									currentGame.image.href =
-										boardGame[gameIndex]['image'];
-
-									if (
-										boardGame[gameIndex][
-											'boardGame[gameIndex]designer'
-										]
-									) {
-										for (let designer of boardGame[
-											gameIndex
-										]['boardgamedesigner']) {
-											currentGame.designers.push({
-												id: designer.objectid,
-												name: designer.value,
-											});
-										}
-									}
-
-									if (
-										boardGame[gameIndex]['boardgameartist']
-									) {
-										for (let artist of boardGame[gameIndex][
-											'boardgameartist'
-										]) {
-											currentGame.artists.push({
-												id: artist.objectid,
-												name: artist.value,
-											});
-										}
-									}
-
-									if (
-										boardGame[gameIndex][
-											'boardgamepublisher'
-										]
-									) {
-										for (let publisher of boardGame[
-											gameIndex
-										]['boardgamepublisher']) {
-											currentGame.publishers.push({
-												id: publisher.objectid,
-												name: publisher.value,
-											});
-										}
-									}
-
-									currentGame.publishedYear =
-										boardGame[gameIndex]['yearpublished'];
-
-									if (
-										boardGame[gameIndex][
-											'boardgamesubdomain.value'
-										]
-									) {
-										currentGame.type =
-											boardGame[gameIndex][
-												'boardgamesubdomain.value'
-											];
-									}
-
-									if (
-										boardGame[gameIndex][
-											'boardgamecategory'
-										]
-									) {
-										for (let category of boardGame[
-											gameIndex
-										]['boardgamecategory']) {
-											currentGame.categories.push({
-												id: category.objectid,
-												name: category.value,
-											});
-										}
-									}
-
-									if (
-										boardGame[gameIndex][
-											'boardgamemechanic'
-										]
-									) {
-										for (let mechanic of boardGame[
-											gameIndex
-										]['boardgamemechanic']) {
-											currentGame.mechanics.push({
-												id: mechanic.objectid,
-												name: mechanic.value,
-											});
-										}
-									}
-
-									if (
-										boardGame[gameIndex]['boardgamefamily']
-									) {
-										for (let family of boardGame[gameIndex][
-											'boardgamefamily'
-										]) {
-											currentGame.families.push({
-												id: family.objectid,
-												name: family.value,
-											});
-										}
-									}
-
-									data.push(currentGame);
-									console.log(
-										'Stored: Game ID = ' +
-											currentGame.id +
-											' Name = ' +
-											currentGame.name
-									);
+									processEntry(boardGame, gameIndex, data);
 								}
 							}
 						}
@@ -244,6 +117,8 @@ async function main() {
 				console.log('Error: ' + error);
 			}
 		}
+
+		// Export the data
 		writeFile(
 			'./data/' + (START_INDEX / 1000).toFixed(0) + '.json',
 			JSON.stringify(data),
@@ -254,6 +129,88 @@ async function main() {
 			}
 		);
 	}
+}
+
+function processEntry(boardGame: any[], gameIndex: number, data: BBGGame[]) {
+	const currentGame: BBGGame = new BBGGame(
+		Number(boardGame[gameIndex]['objectid'])
+	);
+
+	if (boardGame[gameIndex]['name']) {
+		for (let name of boardGame[gameIndex]['name']) {
+			if (name['primary']) {
+				currentGame.name = name['value'];
+			}
+		}
+	}
+
+	currentGame.description = boardGame[gameIndex]['description'];
+	currentGame.image.href = boardGame[gameIndex]['image'];
+
+	if (boardGame[gameIndex]['boardGame[gameIndex]designer']) {
+		for (let designer of boardGame[gameIndex]['boardgamedesigner']) {
+			currentGame.designers.push({
+				id: designer.objectid,
+				name: designer.value,
+			});
+		}
+	}
+
+	if (boardGame[gameIndex]['boardgameartist']) {
+		for (let artist of boardGame[gameIndex]['boardgameartist']) {
+			currentGame.artists.push({
+				id: artist.objectid,
+				name: artist.value,
+			});
+		}
+	}
+
+	if (boardGame[gameIndex]['boardgamepublisher']) {
+		for (let publisher of boardGame[gameIndex]['boardgamepublisher']) {
+			currentGame.publishers.push({
+				id: publisher.objectid,
+				name: publisher.value,
+			});
+		}
+	}
+
+	currentGame.publishedYear = boardGame[gameIndex]['yearpublished'];
+
+	if (boardGame[gameIndex]['boardgamesubdomain.value']) {
+		currentGame.type = boardGame[gameIndex]['boardgamesubdomain.value'];
+	}
+
+	if (boardGame[gameIndex]['boardgamecategory']) {
+		for (let category of boardGame[gameIndex]['boardgamecategory']) {
+			currentGame.categories.push({
+				id: category.objectid,
+				name: category.value,
+			});
+		}
+	}
+
+	if (boardGame[gameIndex]['boardgamemechanic']) {
+		for (let mechanic of boardGame[gameIndex]['boardgamemechanic']) {
+			currentGame.mechanics.push({
+				id: mechanic.objectid,
+				name: mechanic.value,
+			});
+		}
+	}
+
+	if (boardGame[gameIndex]['boardgamefamily']) {
+		for (let family of boardGame[gameIndex]['boardgamefamily']) {
+			currentGame.families.push({
+				id: family.objectid,
+				name: family.value,
+			});
+		}
+	}
+
+	data.push(currentGame);
+	console.log(
+		'Stored: Game ID = ' + currentGame.id + ' Name = ' + currentGame.name
+	);
 }
 
 main();
