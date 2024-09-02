@@ -2,7 +2,7 @@
 
 # format is boardgamegeek.com/boardgame/{ID}
 
-## Highest valid ID is 427265, as of 21/08/2024
+## Highest valid ID is 428089, as of 02/09/2024
 
 # Pull out game's:
 
@@ -39,6 +39,8 @@
 ### mechanics
 
 ### families
+
+## Expansion for Base game: <boardgameexpansion>
 
 ## reviews at /forums/63
 
