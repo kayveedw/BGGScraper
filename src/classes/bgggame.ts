@@ -4,7 +4,7 @@ type pair = {
 	name: string;
 };
 
-export default class BBGGame {
+export class BGGGame {
 	id: number;
 	name: string = '';
 	slug: string | undefined;

@@ -3,10 +3,10 @@ const { XMLParser } = require('fast-xml-parser');
 import { writeFile } from 'fs';
 import slug from 'slug';
 
-import BBGGame from './classes/bgggame';
+import { BGGGame } from './classes/bgggame';
 
-function processEntry(BGGInput: any): BBGGame {
-	const currentGame: BBGGame = new BBGGame(Number(BGGInput['objectid']));
+function processEntry(BGGInput: any): BGGGame {
+	const currentGame: BGGGame = new BGGGame(Number(BGGInput['objectid']));
 
 	if (BGGInput['name']) {
 		for (let name of BGGInput['name']) {
@@ -134,9 +134,9 @@ function processEntry(BGGInput: any): BBGGame {
 
 	if (
 		BGGInput['boardgamesubdomain'] &&
-		BGGInput['boardgamesubdomain.value']
+		BGGInput['boardgamesubdomain'].value
 	) {
-		currentGame.type = BGGInput['boardgamesubdomain.value'];
+		currentGame.type = BGGInput['boardgamesubdomain'].value;
 	}
 
 	if (BGGInput['boardgamecategory']) {
@@ -192,7 +192,7 @@ async function main() {
 		console.log('Must send an argumnent for the starting index.');
 	} else {
 		const START_INDEX: number = Number(process.argv[2]);
-		const data: BBGGame[] = [];
+		const data: BGGGame[] = [];
 
 		for (
 			let mainIndex: number = START_INDEX;
@@ -260,7 +260,7 @@ async function main() {
 							) {
 								// non-boardgames, such as RPG Items have this attribute present and set to True
 								if (!boardGame[gameIndex].subtypemismatch) {
-									let currentGame: BBGGame = processEntry(
+									let currentGame: BGGGame = processEntry(
 										boardGame[gameIndex]
 									);
 
