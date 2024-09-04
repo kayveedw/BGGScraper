@@ -2,6 +2,7 @@ const { XMLParser } = require('fast-xml-parser');
 
 import { writeFile } from 'fs';
 import { Url } from 'url';
+import slug from 'slug';
 
 type pair = {
 	id: number;
@@ -11,6 +12,7 @@ type pair = {
 class BBGGame {
 	id: number;
 	name: string = '';
+	slug: string | undefined;
 	image: Url = {
 		auth: null,
 		hash: null,
@@ -61,6 +63,7 @@ function processEntry(BGGInput: any): BBGGame {
 		for (let name of BGGInput['name']) {
 			if (name['primary']) {
 				currentGame.name = name['value'];
+				currentGame.slug = slug(currentGame.name);
 			}
 		}
 	}
