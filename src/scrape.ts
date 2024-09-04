@@ -1,60 +1,9 @@
 const { XMLParser } = require('fast-xml-parser');
 
 import { writeFile } from 'fs';
-import { Url } from 'url';
 import slug from 'slug';
 
-type pair = {
-	id: number;
-	name: string;
-};
-
-class BBGGame {
-	id: number;
-	name: string = '';
-	slug: string | undefined;
-	image: Url = {
-		auth: null,
-		hash: null,
-		host: null,
-		hostname: null,
-		href: '',
-		path: null,
-		pathname: null,
-		protocol: null,
-		search: null,
-		slashes: null,
-		port: null,
-		query: null,
-	};
-	description: string = '';
-	designers: pair[] = [];
-	graphicDesigners: pair[] = [];
-	artists: pair[] = [];
-	publishers: pair[] = [];
-	publishedYear?: number;
-	developers: pair[] = [];
-	editors: pair[] = [];
-	baseGames: pair[] = [];
-	expansions: pair[] = [];
-	accessories: pair[] = [];
-	versions: pair[] = [];
-	type?: string;
-	categories: pair[] = [];
-	mechanics: pair[] = [];
-	families: pair[] = [];
-	minimumNumberOfPlayers?: number;
-	maximumNumberOfPlayers?: number;
-	playingTime?: number;
-	minimumPlayingTime?: number;
-	maximumPlayingTime?: number;
-	minimumPlayerAge?: number;
-	awards: pair[] = [];
-
-	constructor(id: number) {
-		this.id = id;
-	}
-}
+import BBGGame from './classes/bgggame';
 
 function processEntry(BGGInput: any): BBGGame {
 	const currentGame: BBGGame = new BBGGame(Number(BGGInput['objectid']));
