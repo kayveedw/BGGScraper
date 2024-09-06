@@ -1,9 +1,3 @@
-import { Url } from 'url';
-type pair = {
-	id: number;
-	name: string;
-};
-
 export class BBGGame {
 	bGGid: number;
 	name: string | undefined;
