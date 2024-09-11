@@ -1,5 +1,4 @@
-import { Url } from 'url';
-type pair = {
+export type pair = {
 	id: number;
 	name: string;
 };
@@ -8,33 +7,27 @@ export class BGGGame {
 	id: number;
 	name: string = '';
 	slug: string | undefined;
-	image: Url = {
-		auth: null,
-		hash: null,
-		host: null,
-		hostname: null,
-		href: '',
-		path: null,
-		pathname: null,
-		protocol: null,
-		search: null,
-		slashes: null,
-		port: null,
-		query: null,
-	};
+	image?: URL;
+	shortDescription: string = '';
 	description: string = '';
+	website?: URL;
+	rank?: number;
+	rating?: number;
 	designers: pair[] = [];
 	graphicDesigners: pair[] = [];
+	sculptors: pair[] = [];
 	artists: pair[] = [];
 	publishers: pair[] = [];
 	publishedYear?: number;
 	developers: pair[] = [];
 	editors: pair[] = [];
+	writers: pair[] = [];
+	insertDesigner: pair[] = [];
 	baseGames: pair[] = [];
 	expansions: pair[] = [];
 	accessories: pair[] = [];
 	versions: pair[] = [];
-	type?: string;
+	type: string = '';
 	categories: pair[] = [];
 	mechanics: pair[] = [];
 	families: pair[] = [];

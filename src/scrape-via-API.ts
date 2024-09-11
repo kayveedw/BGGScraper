@@ -18,7 +18,7 @@ function processEntry(BGGInput: any): BGGGame {
 	}
 
 	currentGame.description = BGGInput['description'];
-	currentGame.image.href = BGGInput['image'];
+	currentGame.image = new URL(BGGInput['image']);
 
 	if (BGGInput['boardgamesolodesigner']) {
 		currentGame.designers.push({
