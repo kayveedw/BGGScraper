@@ -52,38 +52,32 @@ function processEntry(geekItemInput: any): BGGGame {
 			});
 		}
 		// Credits
-		loopArrayAndPush(links.boardgamedesigner, currentGame.designers);
-		loopArrayAndPush(links.boardgamesolodesigner, currentGame.designers);
-		loopArrayAndPush(links.boardgamedartist, currentGame.artists);
-		loopArrayAndPush(links.boardgamepublisher, currentGame.publishers);
-		loopArrayAndPush(links.boardgamedeveloper, currentGame.developers);
-		loopArrayAndPush(
-			links.boardgamegraphicdesigner,
-			currentGame.graphicDesigners
-		);
-		loopArrayAndPush(links.boardgamesculptor, currentGame.sculptors);
-		loopArrayAndPush(links.boardgameeditor, currentGame.editors);
-		loopArrayAndPush(links.boardgamewriter, currentGame.writers);
-		loopArrayAndPush(
-			links.boardgameinsertdesigner,
-			currentGame.insertDesigner
-		);
+		loopArrayAndPushPair(links.boardgamedesigner, currentGame.designers);
+		loopArrayAndPushPair(links.boardgamesolodesigner, currentGame.designers);
+		loopArrayAndPushPair(links.boardgamedartist, currentGame.artists);
+		loopArrayAndPushPair(links.boardgamepublisher, currentGame.publishers);
+		loopArrayAndPushPair(links.boardgamedeveloper, currentGame.developers);
+		loopArrayAndPushPair(links.boardgamegraphicdesigner, currentGame.graphicDesigners);
+		loopArrayAndPushPair(links.boardgamesculptor, currentGame.sculptors);
+		loopArrayAndPushPair(links.boardgameeditor, currentGame.editors);
+		loopArrayAndPushPair(links.boardgamewriter, currentGame.writers);
+		loopArrayAndPushPair(links.boardgameinsertdesigner, currentGame.insertDesigner);
 		// Classifications
-		loopArrayAndPush(links.boardgamecategory, currentGame.categories);
-		loopArrayAndPush(links.boardgamemechanic, currentGame.mechanics);
-		loopArrayAndPush(links.boardgamefamily, currentGame.families);
+		loopArrayAndPushPair(links.boardgamecategory, currentGame.categories);
+		loopArrayAndPushPair(links.boardgamemechanic, currentGame.mechanics);
+		loopArrayAndPushPair(links.boardgamefamily, currentGame.families);
 
-		loopArrayAndPush(links.expandsboardgame, currentGame.baseGames);
-		loopArrayAndPush(links.boardgameexpansion, currentGame.expansions);
-		loopArrayAndPush(links.boardgameversion, currentGame.versions);
-		loopArrayAndPush(links.boardgameaccessory, currentGame.accessories);
+		loopArrayAndPushPair(links.expandsboardgame, currentGame.baseGames);
+		loopArrayAndPushPair(links.boardgameexpansion, currentGame.expansions);
+		loopArrayAndPushPair(links.boardgameversion, currentGame.versions);
+		loopArrayAndPushPair(links.boardgameaccessory, currentGame.accessories);
 
-		loopArrayAndPush(links.boardgamehonor, currentGame.awards);
+		loopArrayAndPushPair(links.boardgamehonor, currentGame.awards);
 	}
 
 	return currentGame;
 
-	function loopArrayAndPush(input: Array<any>, output: pair[]) {
+	function loopArrayAndPushPair(input: Array<any>, output: pair[]) {
 		if (input && input.length > 0) {
 			input.forEach((item: any) => {
 				output.push({ id: item.objectid, name: item.name });
