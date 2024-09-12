@@ -87,69 +87,65 @@ function processEntry(geekItemInput: any): BGGGame {
 }
 
 async function scrapeSite() {
-	// perform an HTTP GET request to the target page
+	const baseURL: string = 'https://boardgamegeek.com/boardgame';
 
-	const data: BGGGame[] = [];
+	if (process.argv.length <= 2) {
+		console.log('Must send an argumnent for the starting index.');
+	} else {
+		const START_INDEX: number = Number(process.argv[2]);
+		const data: BGGGame[] = [];
 
-	const response = await axios.get(
-		'https://boardgamegeek.com/boardgame/342942/ark-nova/'
-	);
+		for (let mainIndex: number = START_INDEX; mainIndex < START_INDEX + 1000; mainIndex++) {
+			try {
+				let currentURL = baseURL + '/' + mainIndex.toString();
+				console.log('Reading: ' + currentURL);
 
-	// get the HTML from the server response
-	const html = response.data;
-	const $ = load(html);
+				// perform an HTTP GET request to the target page
+				const response = await axios.get(currentURL);
+				if (response && response.status == 200) {
+					// get the HTML from the server response
+					const html = response.data;
+					const $ = load(html);
 
-	// Check for div.messagebox.error: Present when item is not found
-	if ($('.messagebox.error').length == 0) {
-		// Find the right <script>
-		const scriptHTMLElement = $('script').each((index, scriptTag) => {
-			const child = scriptTag.children[0];
-			if (
-				child &&
-				'data' in child &&
-				child.data.includes('GEEK.geekitemPreload')
-			) {
-				// extract geekitemPreload from script and make its data available
-				let start: number = child.data.indexOf('geekitemPreload');
-				let end: number = child.data.indexOf('GEEK.geekitemSettings');
-				let geekitemPreload: any;
-				eval(child.data.substring(start, end));
-				if (geekitemPreload && 'item' in geekitemPreload) {
-					let currentGame: BGGGame = processEntry(
-						geekitemPreload.item
-					);
+					// Check for div.messagebox.error: Present when item is not found
+					if ($('.messagebox.error').length == 0) {
+						// Find the right <script>
+						const scriptHTMLElement = $('script').each((index, scriptTag) => {
+							const child = scriptTag.children[0];
+							if (child && 'data' in child && child.data.includes('GEEK.geekitemPreload')) {
+								// extract geekitemPreload from script and make its data available
+								let start: number = child.data.indexOf('geekitemPreload');
+								let end: number = child.data.indexOf('GEEK.geekitemSettings');
+								let geekitemPreload: any;
+								eval(child.data.substring(start, end));
+								if (geekitemPreload && 'item' in geekitemPreload) {
+									let currentGame: BGGGame = processEntry(geekitemPreload.item);
 
-					data.push(currentGame);
-					console.log(
-						'Stored: Game ID = ' +
-							currentGame.id +
-							' Name = ' +
-							currentGame.name
-					);
+									data.push(currentGame);
+									console.log('Stored: Game ID = ' + currentGame.id + ' Name = ' + currentGame.name);
+								}
+							}
+						});
+					}
 				}
+			} catch (error) {
+				console.log('Error: ' + error);
 			}
-		});
-	}
+		}
 
-	// Export the data
-	writeFile(
-		'./data/' +
-			'games' +
-			//  + (START_INDEX / 1000).toFixed(0)
-			'.json',
-		JSON.stringify(data),
-		(err) => {
+		// Export the data
+		writeFile('./data/' + (START_INDEX / 1000).toFixed(0) + '.json', JSON.stringify(data), (err) => {
 			if (err) {
 				console.log('err = ' + err);
 			}
-		}
-	);
+		});
 
-	writeCSVToPath('data/games.csv', data, {
-		headers: true,
-		quoteHeaders: false,
-		quoteColumns: true,
-	}).on('error', (error) => console.error(error));
+		writeCSVToPath('./data/' + (START_INDEX / 1000).toFixed(0) + '.csv', data, {
+			headers: true,
+			quoteHeaders: false,
+			quoteColumns: true,
+		}).on('error', (error) => console.error(error));
+	}
 }
 
 scrapeSite();
