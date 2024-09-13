@@ -1,15 +1,10 @@
-import {
-	createWriteStream,
-	readdirSync,
-	readFileSync,
-	writeFile,
-	WriteStream,
-} from 'fs';
+import { readdirSync, readFileSync, writeFile } from 'fs';
 import slug from 'slug';
+import { writeToPath as writeCSVToPath } from '@fast-csv/format';
 
 import { BBGGame } from './classes/bbggame';
 import { BGGGame } from './classes/bgggame';
-import { quoteWrapper, sortStringAsc } from './utilities';
+import { sortStringAsc } from './utilities';
 
 type nameCountPair = {
 	name: string;
@@ -24,6 +19,16 @@ function convert(bGGItem: BGGGame): BBGGame {
 		bGGItem.slug = slug(bargainBoardGameItem.name);
 	}
 	bargainBoardGameItem.slug = bGGItem.slug;
+
+	bargainBoardGameItem.publishedYear = bGGItem.publishedYear;
+	bargainBoardGameItem.website = bGGItem.website;
+	bargainBoardGameItem.rank = bGGItem.rank;
+	bargainBoardGameItem.type = bGGItem.type;
+
+	if (bGGItem.rating) {
+		const adustment = -5 + Math.random() * 10; // Number between -5 and +5
+		bargainBoardGameItem.rating = Math.floor(bGGItem.rating * 10 + adustment); // BBG ratings are between 1-100
+	}
 
 	// Consolidate the different roles into single credits list
 	if (bGGItem.artists && bGGItem.artists.length) {
@@ -48,9 +53,7 @@ function convert(bGGItem: BGGGame): BBGGame {
 	}
 	if (bGGItem.graphicDesigners && bGGItem.graphicDesigners.length) {
 		for (let item of bGGItem.graphicDesigners) {
-			bargainBoardGameItem.credits.pushIfNew(
-				'Graphic Designer: ' + item.name
-			);
+			bargainBoardGameItem.credits.pushIfNew('Graphic Designer: ' + item.name);
 		}
 	}
 	if (bGGItem.publishers && bGGItem.publishers.length) {
@@ -63,39 +66,28 @@ function convert(bGGItem: BGGGame): BBGGame {
 	}
 	if (bGGItem.minimumNumberOfPlayers || bGGItem.maximumNumberOfPlayers) {
 		let playerRange = 'Players: ';
-		playerRange += bGGItem.minimumNumberOfPlayers
-			? String(bGGItem.minimumNumberOfPlayers)
-			: '1';
-		playerRange += bGGItem.maximumNumberOfPlayers
-			? '-' + String(bGGItem.maximumNumberOfPlayers)
-			: '+';
+		playerRange += bGGItem.minimumNumberOfPlayers ? String(bGGItem.minimumNumberOfPlayers) : '1';
+		playerRange += bGGItem.maximumNumberOfPlayers ? '-' + String(bGGItem.maximumNumberOfPlayers) : '+';
 		bargainBoardGameItem.classifications.pushIfNew(playerRange);
 	}
 	if (bGGItem.minimumPlayerAge) {
-		bargainBoardGameItem.classifications.pushIfNew(
-			String('Age: ' + String(bGGItem.minimumPlayerAge) + '+')
-		);
+		bargainBoardGameItem.classifications.pushIfNew(String('Age: ' + String(bGGItem.minimumPlayerAge) + '+'));
 	}
 
 	// Consolidate into a single classifications list
-
 	if (bGGItem.categories && bGGItem.categories.length) {
 		for (let item of bGGItem.categories) {
-			bargainBoardGameItem.classifications.pushIfNew(
-				'Category: ' + item.name
-			);
+			bargainBoardGameItem.classifications.pushIfNew('Category: ' + item.name);
 		}
 	}
 	if (bGGItem.mechanics && bGGItem.mechanics.length) {
 		for (let item of bGGItem.mechanics) {
-			bargainBoardGameItem.classifications.pushIfNew(
-				'Mechanism: ' + item.name
-			);
+			bargainBoardGameItem.classifications.pushIfNew('Mechanism: ' + item.name);
 		}
 	}
 	if (bGGItem.families && bGGItem.families.length) {
 		for (let item of bGGItem.families) {
-			bargainBoardGameItem.classifications.pushIfNew(item.name); // Dont add a prefix as all values already include one
+			bargainBoardGameItem.classifications.pushIfNew(item.name); // Dont add a prefix as all family values already include one
 		}
 	}
 	return bargainBoardGameItem;
@@ -114,9 +106,7 @@ async function main() {
 		readdirSync(INPUT_FOLDER)
 			.filter((name) => name.toLowerCase().endsWith('.json'))
 			.forEach((file) => {
-				let fileData: BGGGame[] = JSON.parse(
-					readFileSync(INPUT_FOLDER + '/' + file, 'utf8')
-				);
+				let fileData: BGGGame[] = JSON.parse(readFileSync(INPUT_FOLDER + '/' + file, 'utf8'));
 				let exportData: BBGGame[] = [];
 
 				// Parse JSON data from BGG objects to BBG ones that match our needs better
@@ -125,53 +115,46 @@ async function main() {
 				}
 
 				// Export the data
-				writeFile(
-					INPUT_FOLDER + '/BBG/' + file,
-					JSON.stringify(exportData),
-					(err) => {
-						if (err) {
-							console.log('err = ' + err);
-						}
+				writeFile(INPUT_FOLDER + '/BBG/' + file, JSON.stringify(exportData), (err) => {
+					if (err) {
+						console.log('err = ' + err);
 					}
-				);
-
-				let outputFile: WriteStream = createWriteStream(
-					'./data/BBG/' + file + '.csv',
-					{ flags: 'w', encoding: 'utf8' }
-				);
-
-				Object.keys(exportData[0]).forEach((key) => {
-					outputFile.write(key + ',');
 				});
-				outputFile.write('\n');
 
-				for (let game of exportData) {
-					let property: keyof typeof game;
-					for (property in game) {
-						outputFile.write(
-							game[property]
-								? quoteWrapper(
-										String(game[property]).replaceAll(
-											/\"/g,
-											'""'
-										)
-								  )
-								: ''
-						);
-						outputFile.write(',');
-					}
-					outputFile.write('\n');
-				}
-				outputFile.end();
+				writeCSVToPath('./data/BBG/' + file + '.csv', exportData, {
+					headers: true,
+					quoteHeaders: false,
+					quoteColumns: true,
+				}).on('error', (error) => console.error(error));
+
+				// let outputFile: WriteStream = createWriteStream('./data/BBG/' + file + '.csv', {
+				// 	flags: 'w',
+				// 	encoding: 'utf8',
+				// });
+
+				// Object.keys(exportData[0]).forEach((key) => {
+				// 	outputFile.write(key + ',');
+				// });
+				// outputFile.write('\n');
+
+				// for (let game of exportData) {
+				// 	let property: keyof typeof game;
+				// 	for (property in game) {
+				// 		outputFile.write(
+				// 			game[property] ? quoteWrapper(String(game[property]).replaceAll(/\"/g, '""')) : ''
+				// 		);
+				// 		outputFile.write(',');
+				// 	}
+				// 	outputFile.write('\n');
+				// }
+				// outputFile.end();
 
 				// Loop BBG formatted data
 
 				for (let game of exportData) {
 					for (let credit of game.credits) {
 						// Check if value is already in allCredits and push if not
-						let index: number = allCredits.findIndex(
-							(item) => item.name === credit
-						);
+						let index: number = allCredits.findIndex((item) => item.name === credit);
 						if (index == -1) {
 							allCredits.push({ name: credit, count: 1 });
 						} else {
@@ -182,9 +165,7 @@ async function main() {
 
 					for (let classification of game.classifications) {
 						// Check if value is already in allClassifications and push if not
-						let index: number = allClassifications.findIndex(
-							(item) => item.name === classification
-						);
+						let index: number = allClassifications.findIndex((item) => item.name === classification);
 						if (index == -1) {
 							allClassifications.push({
 								name: classification,
@@ -202,32 +183,17 @@ async function main() {
 		allClassifications.sort((a, b) => sortStringAsc(a.name, b.name));
 
 		// Export CSVs
-		let outputFile: WriteStream = createWriteStream(
-			'./data/BBG/Credits.csv',
-			{ flags: 'w', encoding: 'utf8' }
-		);
-		outputFile.write('Name,Count\n');
-		for (let credit of allCredits) {
-			outputFile.write(
-				quoteWrapper(credit.name) + ',' + Number(credit.count) + '\n'
-			);
-		}
-		outputFile.end();
+		writeCSVToPath('./data/BBG/Credits.csv', allCredits, {
+			headers: true,
+			quoteHeaders: false,
+			quoteColumns: true,
+		}).on('error', (error) => console.error(error));
 
-		outputFile = createWriteStream('./data/BBG/Classification.csv', {
-			flags: 'w',
-			encoding: 'utf8',
-		});
-		outputFile.write('Name,Count\n');
-		for (let classification of allClassifications) {
-			outputFile.write(
-				quoteWrapper(classification.name) +
-					',' +
-					Number(classification.count) +
-					'\n'
-			);
-		}
-		outputFile.end();
+		writeCSVToPath('./data/BBG/Classifications.csv', allClassifications, {
+			headers: true,
+			quoteHeaders: false,
+			quoteColumns: true,
+		}).on('error', (error) => console.error(error));
 	}
 }
 
