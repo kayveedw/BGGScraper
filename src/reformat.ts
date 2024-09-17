@@ -103,6 +103,7 @@ async function main() {
 		// Extract all Credits and Classifications
 		let allCredits: nameCountPair[] = [];
 		let allClassifications: nameCountPair[] = [];
+		let allGames: BBGGame[] = [];
 		// Loop all JSON files in the folder
 		readdirSync(INPUT_FOLDER)
 			.filter((name) => name.toLowerCase().endsWith('.json'))
@@ -127,28 +128,6 @@ async function main() {
 					quoteHeaders: false,
 					quoteColumns: true,
 				}).on('error', (error) => console.error(error));
-
-				// let outputFile: WriteStream = createWriteStream('./data/BBG/' + file + '.csv', {
-				// 	flags: 'w',
-				// 	encoding: 'utf8',
-				// });
-
-				// Object.keys(exportData[0]).forEach((key) => {
-				// 	outputFile.write(key + ',');
-				// });
-				// outputFile.write('\n');
-
-				// for (let game of exportData) {
-				// 	let property: keyof typeof game;
-				// 	for (property in game) {
-				// 		outputFile.write(
-				// 			game[property] ? quoteWrapper(String(game[property]).replaceAll(/\"/g, '""')) : ''
-				// 		);
-				// 		outputFile.write(',');
-				// 	}
-				// 	outputFile.write('\n');
-				// }
-				// outputFile.end();
 
 				// Loop BBG formatted data
 
@@ -178,7 +157,16 @@ async function main() {
 						}
 					}
 				}
+
+				allGames.push(...exportData);
 			});
+
+		// Export all games JSON
+		writeFile(INPUT_FOLDER + '/BBG/Games.json', JSON.stringify(allGames), (err) => {
+			if (err) {
+				console.log('err = ' + err);
+			}
+		});
 
 		allCredits.sort((a, b) => sortStringAsc(a.name, b.name));
 		allClassifications.sort((a, b) => sortStringAsc(a.name, b.name));
@@ -191,6 +179,12 @@ async function main() {
 		}).on('error', (error) => console.error(error));
 
 		writeCSVToPath('./data/BBG/Classifications.csv', allClassifications, {
+			headers: true,
+			quoteHeaders: false,
+			quoteColumns: true,
+		}).on('error', (error) => console.error(error));
+
+		writeCSVToPath('./data/BBG/Games.csv', allGames, {
 			headers: true,
 			quoteHeaders: false,
 			quoteColumns: true,
