@@ -19,6 +19,7 @@ function convert(bGGItem: BGGGame): BBGGame {
 		bGGItem.slug = slug(bargainBoardGameItem.name);
 	}
 	bargainBoardGameItem.slug = bGGItem.slug;
+	bargainBoardGameItem.description = bGGItem.description;
 
 	bargainBoardGameItem.publishedYear = bGGItem.publishedYear;
 	bargainBoardGameItem.website = bGGItem.website;
