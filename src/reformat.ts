@@ -189,6 +189,25 @@ async function main() {
 			quoteHeaders: false,
 			quoteColumns: true,
 		}).on('error', (error) => console.error(error));
+
+		// Export games with a Rank in order of ascending rank
+		allGames = allGames.filter((game) => {
+			return game.rank ? true : false;
+		});
+		allGames.sort((a, b) => {
+			return a.rank !== b.rank ? (Number(a.rank) < Number(b.rank) ? -1 : 1) : 0;
+		});
+
+		writeFile(INPUT_FOLDER + '/BBG/RankedGames.json', JSON.stringify(allGames), (err) => {
+			if (err) {
+				console.log('err = ' + err);
+			}
+		});
+		writeCSVToPath('./data/BBG/RankedGames.csv', allGames, {
+			headers: true,
+			quoteHeaders: false,
+			quoteColumns: true,
+		}).on('error', (error) => console.error(error));
 	}
 }
 
