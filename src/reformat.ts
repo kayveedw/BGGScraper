@@ -67,8 +67,13 @@ function convert(bGGItem: BGGGame): BBGGame {
 	}
 	if (bGGItem.minimumNumberOfPlayers || bGGItem.maximumNumberOfPlayers) {
 		let playerRange = 'Players: ';
-		playerRange += bGGItem.minimumNumberOfPlayers ? String(bGGItem.minimumNumberOfPlayers) : '1';
-		playerRange += bGGItem.maximumNumberOfPlayers ? '-' + String(bGGItem.maximumNumberOfPlayers) : '+';
+		if (bGGItem.minimumNumberOfPlayers == bGGItem.maximumNumberOfPlayers) {
+			// Fixed number of player
+			playerRange += String(bGGItem.minimumNumberOfPlayers);
+		} else {
+			playerRange += bGGItem.minimumNumberOfPlayers ? String(bGGItem.minimumNumberOfPlayers) : '1';
+			playerRange += bGGItem.maximumNumberOfPlayers ? '-' + String(bGGItem.maximumNumberOfPlayers) : '+';
+		}
 		bargainBoardGameItem.classifications.pushIfNew(playerRange);
 	}
 	if (bGGItem.minimumPlayerAge) {
