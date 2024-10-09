@@ -1,7 +1,6 @@
-import { debug } from 'console';
-import { writeFile } from 'fs';
+import { existsSync, readFileSync, writeFile } from 'fs';
 
-const maxID: number = 428089;
+const maxID: number = 429191;
 const country: string = 'uk';
 const baseURL: string = 'https://api.geekdo.com/api/amazon/textads?objecttype=thing&locale=' + country + '&objectid=';
 
@@ -27,28 +26,54 @@ async function getAmazonURL(bBGID: number): Promise<string> {
 		}
 		return '';
 	} catch (error) {
-		console.log('Error: ' + error);
+		console.log('bBGID = ' + bBGID + ' Error: ' + error);
 		return '';
 	}
 }
 
 async function main() {
-	let bGGID2AmazonMapping = new Map<number, string>();
+	// process.argv.push('.\\data\\AmazonLinks.json');
+	if (process.argv.length <= 2) {
+		console.log('Must send an argumnent for input/output file.');
+	} else {
+		const DATA_FILE: string = process.argv[2];
 
-	for (let index: number = 1; index <= maxID; index++) {
-		// let startIndex = 167791;
-		// for (let index: number = startIndex; index <= startIndex + 100; index++) {
-		let url: string = await getAmazonURL(index);
-		if (url) {
-			console.log(index + ': ' + url);
-			bGGID2AmazonMapping.set(index, url);
+		// Load previous results
+		let bGGID2AmazonMapping: Map<number, string> = new Map<number, string>();
+
+		if (existsSync(DATA_FILE)) {
+			let fileData = JSON.parse(readFileSync(DATA_FILE, 'utf8'));
+
+			if (fileData) {
+				Object.entries(fileData).forEach((item) => {
+					bGGID2AmazonMapping.set(Number(item[0]), String(item[1]));
+				});
+			}
 		}
+
+		// Start with highest numbers and work down
+		for (let index: number = maxID; index >= 1; index--) {
+			if (!bGGID2AmazonMapping.has(index)) {
+				let url: string = await getAmazonURL(index);
+				if (url) {
+					console.log(index + ': ' + url);
+					bGGID2AmazonMapping.set(index, url);
+				}
+			}
+			if (index % 1000 == 0) {
+				outputData(DATA_FILE, bGGID2AmazonMapping);
+			}
+		}
+		outputData(DATA_FILE, bGGID2AmazonMapping);
 	}
-	writeFile('./data/AmazonLinks.json', JSON.stringify(Object.fromEntries(bGGID2AmazonMapping)), (err) => {
-		if (err) {
-			console.log('err = ' + err);
-		}
-	});
+
+	function outputData(DATA_FILE: string, bGGID2AmazonMapping: Map<number, string>) {
+		writeFile(DATA_FILE, JSON.stringify(Object.fromEntries(bGGID2AmazonMapping)), (err) => {
+			if (err) {
+				console.log('err = ' + err);
+			}
+		});
+	}
 }
 
 main();
