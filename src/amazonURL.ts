@@ -8,9 +8,17 @@ async function getAmazonURL(bBGID: number): Promise<string> {
 	try {
 		let currentURL: string = baseURL + bBGID;
 
-		const response = await fetch(currentURL);
-
-		if (response && response.status == 200) {
+		let response = await fetch(currentURL);
+		if (response) {
+			while (response.status == 429) {
+				if (response.headers.get('Retry-After')) {
+					await new Promise((resolve) =>
+						setTimeout(resolve, 1000 * Number(response.headers.get('Retry-After')))
+					);
+					response = await fetch(currentURL);
+				}
+			}
+			if (response.status == 200) {
 			const data: string = await response.text();
 
 			let result = JSON.parse(data);
@@ -24,9 +32,13 @@ async function getAmazonURL(bBGID: number): Promise<string> {
 				return url.href;
 			}
 		}
+		}
+
 		return '';
 	} catch (error) {
 		console.log('bBGID = ' + bBGID + ' Error: ' + error);
+		await new Promise((resolve) => setTimeout(resolve, 1000));
+
 		return '';
 	}
 }
@@ -55,8 +67,8 @@ async function main() {
 		for (let index: number = maxID; index >= 1; index--) {
 			if (!bGGID2AmazonMapping.has(index)) {
 				let url: string = await getAmazonURL(index);
+				console.log(index + ': ' + url);
 				if (url) {
-					console.log(index + ': ' + url);
 					bGGID2AmazonMapping.set(index, url);
 				}
 			}
