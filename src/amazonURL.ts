@@ -19,19 +19,19 @@ async function getAmazonURL(bBGID: number): Promise<string> {
 				}
 			}
 			if (response.status == 200) {
-			const data: string = await response.text();
+				const data: string = await response.text();
 
-			let result = JSON.parse(data);
-			if (result && result.uk && result.uk.url) {
-				let url: URL = new URL(result.uk.url);
-				let search: string = url.search;
-				if (search != '') {
-					let position: number = url.href.indexOf(search);
-					url.href = url.href.substring(0, position);
+				let result = JSON.parse(data);
+				if (result && result.uk && result.uk.url) {
+					let url: URL = new URL(result.uk.url);
+					let search: string = url.search;
+					if (search != '') {
+						let position: number = url.href.indexOf(search);
+						url.href = url.href.substring(0, position);
+					}
+					return url.href;
 				}
-				return url.href;
 			}
-		}
 		}
 
 		return '';
@@ -44,7 +44,7 @@ async function getAmazonURL(bBGID: number): Promise<string> {
 }
 
 async function main() {
-	// process.argv.push('.\\data\\AmazonLinks.json');
+	process.argv.push('.\\data\\AmazonLinks.json');
 	if (process.argv.length <= 2) {
 		console.log('Must send an argumnent for input/output file.');
 	} else {

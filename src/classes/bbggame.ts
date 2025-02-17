@@ -8,6 +8,9 @@ export class BBGGame {
 	rank: number | undefined;
 	rating: number | undefined;
 	type: string | undefined;
+	minimumPlayerAge: number | undefined;
+	minimumPlayers: number | undefined;
+	maximumPlayers: number | undefined;
 
 	credits: string[] = [];
 	classifications: string[] = [];

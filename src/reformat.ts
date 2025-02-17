@@ -34,35 +34,48 @@ function convert(bGGItem: BGGGame): BBGGame {
 	// Consolidate the different roles into single credits list
 	if (bGGItem.artists && bGGItem.artists.length) {
 		for (let item of bGGItem.artists) {
-			bargainBoardGameItem.credits.pushIfNew('Artist: ' + item.name);
+			if (!item.name.includes('Uncredited')) {
+				bargainBoardGameItem.credits.pushIfNew('Artist: ' + item.name);
+			}
 		}
 	}
 	if (bGGItem.designers && bGGItem.designers.length) {
 		for (let item of bGGItem.designers) {
-			bargainBoardGameItem.credits.pushIfNew('Designer: ' + item.name);
+			if (!item.name.includes('Uncredited')) {
+				bargainBoardGameItem.credits.pushIfNew('Designer: ' + item.name);
+			}
 		}
 	}
 	if (bGGItem.developers && bGGItem.developers.length) {
 		for (let item of bGGItem.developers) {
-			bargainBoardGameItem.credits.pushIfNew('Developer: ' + item.name);
+			if (!item.name.includes('Uncredited')) {
+				bargainBoardGameItem.credits.pushIfNew('Developer: ' + item.name);
+			}
 		}
 	}
 	if (bGGItem.editors && bGGItem.editors.length) {
 		for (let item of bGGItem.editors) {
-			bargainBoardGameItem.credits.pushIfNew('Editor: ' + item.name);
+			if (!item.name.includes('Uncredited')) {
+				bargainBoardGameItem.credits.pushIfNew('Editor: ' + item.name);
+			}
 		}
 	}
 	if (bGGItem.graphicDesigners && bGGItem.graphicDesigners.length) {
 		for (let item of bGGItem.graphicDesigners) {
-			bargainBoardGameItem.credits.pushIfNew('Graphic Designer: ' + item.name);
+			if (!item.name.includes('Uncredited')) {
+				bargainBoardGameItem.credits.pushIfNew('Graphic Designer: ' + item.name);
+			}
 		}
 	}
 	if (bGGItem.publishers && bGGItem.publishers.length) {
 		for (let item of bGGItem.publishers) {
-			bargainBoardGameItem.credits.pushIfNew('Publisher: ' + item.name);
+			if (!item.name.includes('Uncredited')) {
+				bargainBoardGameItem.credits.pushIfNew('Publisher: ' + item.name);
+			}
 		}
 	}
 	if (bGGItem.type) {
+		bargainBoardGameItem.classifications.pushIfNew('Type');
 		bargainBoardGameItem.classifications.pushIfNew('Type: ' + bGGItem.type);
 	}
 	if (bGGItem.minimumNumberOfPlayers || bGGItem.maximumNumberOfPlayers) {
@@ -74,26 +87,49 @@ function convert(bGGItem: BGGGame): BBGGame {
 			playerRange += bGGItem.minimumNumberOfPlayers ? String(bGGItem.minimumNumberOfPlayers) : '1';
 			playerRange += bGGItem.maximumNumberOfPlayers ? '-' + String(bGGItem.maximumNumberOfPlayers) : '+';
 		}
+		bargainBoardGameItem.classifications.pushIfNew('Players');
 		bargainBoardGameItem.classifications.pushIfNew(playerRange);
+		if (
+			bGGItem.minimumNumberOfPlayers &&
+			bGGItem.maximumNumberOfPlayers &&
+			bGGItem.minimumNumberOfPlayers <= bGGItem.maximumNumberOfPlayers
+		) {
+			for (let index: number = bGGItem.minimumNumberOfPlayers; index <= bGGItem.maximumNumberOfPlayers; index++) {
+				bargainBoardGameItem.classifications.pushIfNew('Players: ' + String(index));
+			}
+		}
+
+		bargainBoardGameItem.minimumPlayers = bGGItem.minimumNumberOfPlayers; // Field as well as category
+		bargainBoardGameItem.maximumPlayers = bGGItem.maximumNumberOfPlayers; // Field as well as category
 	}
 	if (bGGItem.minimumPlayerAge) {
+		bargainBoardGameItem.classifications.pushIfNew('Age');
 		bargainBoardGameItem.classifications.pushIfNew(String('Age: ' + String(bGGItem.minimumPlayerAge) + '+'));
+		bargainBoardGameItem.minimumPlayerAge = bGGItem.minimumPlayerAge; // Field as well as category
 	}
 
 	// Consolidate into a single classifications list
 	if (bGGItem.categories && bGGItem.categories.length) {
 		for (let item of bGGItem.categories) {
+			bargainBoardGameItem.classifications.pushIfNew('Category');
 			bargainBoardGameItem.classifications.pushIfNew('Category: ' + item.name);
 		}
 	}
 	if (bGGItem.mechanics && bGGItem.mechanics.length) {
 		for (let item of bGGItem.mechanics) {
+			bargainBoardGameItem.classifications.pushIfNew('Mechanism');
 			bargainBoardGameItem.classifications.pushIfNew('Mechanism: ' + item.name);
 		}
 	}
 	if (bGGItem.families && bGGItem.families.length) {
 		for (let item of bGGItem.families) {
-			bargainBoardGameItem.classifications.pushIfNew(item.name); // Dont add a prefix as all family values already include one
+			// Any with an Admin: prefix are not needed
+			if (!item.name.includes('Admin:')) {
+				let prefixEnd = item.name.indexOf(':');
+				let parentPrefix = item.name.substring(0, prefixEnd);
+				bargainBoardGameItem.classifications.pushIfNew(parentPrefix);
+				bargainBoardGameItem.classifications.pushIfNew(item.name); // Dont add a prefix as all family values already include one
+			}
 		}
 	}
 	return bargainBoardGameItem;
@@ -112,6 +148,7 @@ async function main() {
 		// Loop all JSON files in the folder
 		readdirSync(INPUT_FOLDER)
 			.filter((name) => name.toLowerCase().endsWith('.json'))
+			.filter((name) => name != 'AmazonLinks.json')
 			.forEach((file) => {
 				let fileData: BGGGame[] = JSON.parse(readFileSync(INPUT_FOLDER + '/' + file, 'utf8'));
 				let exportData: BBGGame[] = [];
